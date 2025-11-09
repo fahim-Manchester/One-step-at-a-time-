@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { SavingsPlanEntry } from '../types';
 import Card from './ui/Card';
@@ -15,6 +14,7 @@ interface SavingsChartProps {
   data: SavingsPlanEntry[];
   goalAmount: number;
   completedDays: number;
+  missedDays: string[];
 }
 
 const formatXAxis = (isoDateString: string) => {
@@ -37,7 +37,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 
-const SavingsChart: React.FC<SavingsChartProps> = ({ data, goalAmount, completedDays }) => {
+const SavingsChart: React.FC<SavingsChartProps> = ({ data, goalAmount, completedDays, missedDays }) => {
   if (typeof window === 'undefined' || !window.Recharts) {
     if (!data || data.length === 0) {
         return (
@@ -53,7 +53,8 @@ const SavingsChart: React.FC<SavingsChartProps> = ({ data, goalAmount, completed
         <SavingsCalendar 
             startDate={startDate} 
             totalDays={data.length} 
-            completedDays={completedDays} 
+            completedDays={completedDays}
+            missedDays={missedDays} 
         />
     );
   }

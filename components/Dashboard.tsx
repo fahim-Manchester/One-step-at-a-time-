@@ -13,6 +13,7 @@ interface DashboardProps {
   onReset: () => void;
   onProgressUpdate: () => void;
   onNextDay: () => void;
+  onMissDay: () => void;
 }
 
 const StatCard: React.FC<{ title: string; value: string; currency?: string;}> = ({ title, value, currency }) => (
@@ -62,8 +63,8 @@ const calculateCurrentWeeklySpending = (goal: SavingsGoal): number => {
   }
 
 
-const Dashboard: React.FC<DashboardProps> = ({ appState, onReset, onProgressUpdate, onNextDay }) => {
-  const { goal, completedDays, lastCompletionDate, currentDate } = appState;
+const Dashboard: React.FC<DashboardProps> = ({ appState, onReset, onProgressUpdate, onNextDay, onMissDay }) => {
+  const { goal, completedDays, lastCompletionDate, currentDate, missedDays, isPenalized } = appState;
 
   const [recommendationData, setRecommendationData] = useState<RecommendationData | null>(null);
   const [isLoadingRecs, setIsLoadingRecs] = useState(true);
@@ -162,11 +163,18 @@ const Dashboard: React.FC<DashboardProps> = ({ appState, onReset, onProgressUpda
                 <p className="text-4xl font-bold text-cyan-400 mt-2">£{todaysPlanEntry ? todaysPlanEntry.dailyAmount.toFixed(2) : '0.00'}</p>
                 <p className="text-sm text-slate-400">{todaysPlanEntry ? 'Transfer this to your savings.' : 'You have reached your goal!'}</p>
             </Card>
-            <Card className="flex-1 p-4 flex flex-col justify-center items-center">
-                 <Button onClick={handleSaveToday} disabled={isTodaySaved || !todaysPlanEntry} className="w-full h-full text-lg">
-                    {isTodaySaved ? "All Saved for Today!" : "I've Saved Today"}
-                 </Button>
-            </Card>
+            {isPenalized ? (
+                <Card className="flex-1 p-4 flex flex-col justify-center items-center bg-red-900/50 border-red-700">
+                    <p className="text-red-300 font-semibold text-center">Your streak was broken.</p>
+                    <p className="text-slate-400 text-sm text-center mt-1">You must start a new goal to continue.</p>
+                </Card>
+            ) : (
+                <Card className="flex-1 p-4 flex flex-col justify-center items-center">
+                    <Button onClick={handleSaveToday} disabled={isTodaySaved || !todaysPlanEntry} className="w-full h-full text-lg">
+                        {isTodaySaved ? "All Saved for Today!" : "I've Saved Today"}
+                    </Button>
+                </Card>
+            )}
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -193,7 +201,7 @@ const Dashboard: React.FC<DashboardProps> = ({ appState, onReset, onProgressUpda
             <p className="text-right text-sm mt-2 text-slate-300">{progress.toFixed(1)}% Complete</p>
         </Card>
 
-        <SavingsChart data={savingsPlan} goalAmount={goal.targetAmount} completedDays={completedDays} />
+        <SavingsChart data={savingsPlan} goalAmount={goal.targetAmount} completedDays={completedDays} missedDays={missedDays} />
         
         <Recommendations 
             isLoading={isLoadingRecs}
@@ -207,10 +215,20 @@ const Dashboard: React.FC<DashboardProps> = ({ appState, onReset, onProgressUpda
         <Card className="text-center p-4">
             <h3 className="text-lg font-semibold text-slate-300">Time Control</h3>
             <p className="text-slate-400 mb-4">Current Date: <span className="font-mono text-cyan-400">{new Date(currentDate).toLocaleDateString('en-GB', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}</span></p>
-            <Button onClick={onNextDay} variant="secondary" disabled={!isTodaySaved}>
-                Simulate Next Day →
-            </Button>
-            <p className="text-xs text-slate-500 mt-2">Press "I've Saved Today" before advancing to the next day.</p>
+            <div className="flex gap-4 justify-center">
+                <Button onClick={onMissDay} variant="secondary" disabled={isTodaySaved || isPenalized}>
+                    Miss a Day
+                </Button>
+                <Button onClick={onNextDay} variant="secondary" disabled={!isTodaySaved || isPenalized}>
+                    Simulate Next Day →
+                </Button>
+            </div>
+            <p className="text-xs text-slate-500 mt-2">
+                {isPenalized
+                    ? "Controls are locked. Please start a new goal."
+                    : 'Press "I\'ve Saved Today" before advancing to the next day.'
+                }
+            </p>
         </Card>
 
         <div className="text-center pt-4">

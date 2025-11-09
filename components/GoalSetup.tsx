@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import type { SavingsGoal, BasicFinancials, IntermediateFinancials, AdvancedFinancials, RecurringExpense } from '../types';
 import { AccuracyLevel } from '../types';
@@ -90,6 +89,11 @@ const GoalSetup: React.FC<GoalSetupProps> = ({ onGoalSet }) => {
     };
     onGoalSet(finalGoal);
   };
+
+  const handleBack = () => {
+    setError('');
+    setStep(prev => Math.max(1, prev - 1));
+  }
   
   const renderStep = () => {
     switch (step) {
@@ -103,11 +107,16 @@ const GoalSetup: React.FC<GoalSetupProps> = ({ onGoalSet }) => {
         );
       case 2:
         return (
-            <div className="space-y-4">
-                <AccuracyCard level={AccuracyLevel.BASIC} title="Basic" description="Provide monthly income and spending estimates." onSelect={handleLevelSelect} />
-                <AccuracyCard level={AccuracyLevel.INTERMEDIATE} title="Try a bit more" description="Also include grocery spending and recurring bills." onSelect={handleLevelSelect} />
-                <AccuracyCard level={AccuracyLevel.ADVANCED} title="Lock in" description="Upload a transaction history (CSV) for detailed analysis." onSelect={handleLevelSelect} />
-            </div>
+            <>
+                <div className="space-y-4">
+                    <AccuracyCard level={AccuracyLevel.BASIC} title="Basic" description="Provide monthly income and spending estimates." onSelect={handleLevelSelect} />
+                    <AccuracyCard level={AccuracyLevel.INTERMEDIATE} title="Try a bit more" description="Also include grocery spending and recurring bills." onSelect={handleLevelSelect} />
+                    <AccuracyCard level={AccuracyLevel.ADVANCED} title="Lock in" description="Upload a transaction history (CSV) for detailed analysis." onSelect={handleLevelSelect} />
+                </div>
+                <div className="mt-6 text-center">
+                    <Button onClick={handleBack} variant="ghost">Back</Button>
+                </div>
+            </>
         );
       case 3:
         return (
@@ -142,7 +151,10 @@ const GoalSetup: React.FC<GoalSetupProps> = ({ onGoalSet }) => {
                         <input id="csv-upload" type="file" accept=".csv" className="hidden" onChange={handleFileChange} />
                      </div>
                 )}
-                <Button type="submit" className="w-full" disabled={accuracyLevel === AccuracyLevel.ADVANCED && !financials.transactions}>Start Saving</Button>
+                <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                    <Button type="button" onClick={handleBack} variant="secondary" className="w-full">Back</Button>
+                    <Button type="submit" className="w-full" disabled={accuracyLevel === AccuracyLevel.ADVANCED && !financials.transactions}>Start Saving</Button>
+                </div>
             </form>
         );
       default: return null;
@@ -159,6 +171,9 @@ const GoalSetup: React.FC<GoalSetupProps> = ({ onGoalSet }) => {
             <p className="text-center text-slate-400 mb-6">{stepSubtitles[step-1]}</p>
             {error && <p className="text-red-400 text-sm mb-4 text-center">{error}</p>}
             {renderStep()}
+            <p className="text-center text-slate-500 text-xs mt-6">
+              A consistent daily commitment is key. Missing your goal for three consecutive days will temporarily freeze your plan.
+            </p>
         </Card>
     </div>
   );

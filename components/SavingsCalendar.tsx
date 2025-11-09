@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Card from './ui/Card';
 
@@ -6,11 +5,13 @@ interface SavingsCalendarProps {
   startDate: string;
   totalDays: number;
   completedDays: number;
+  missedDays: string[];
 }
 
-const SavingsCalendar: React.FC<SavingsCalendarProps> = ({ startDate, totalDays, completedDays }) => {
+const SavingsCalendar: React.FC<SavingsCalendarProps> = ({ startDate, totalDays, completedDays, missedDays }) => {
   const start = new Date(startDate);
-  const startDayOfWeek = (start.getDay() + 6) % 7; // Monday is 0, Sunday is 6
+  start.setUTCHours(0,0,0,0);
+  const startDayOfWeek = (start.getUTCDay() + 6) % 7; // Monday is 0, Sunday is 6
 
   const calendarDays = [];
   
@@ -19,18 +20,30 @@ const SavingsCalendar: React.FC<SavingsCalendarProps> = ({ startDate, totalDays,
     calendarDays.push(<div key={`spacer-${i}`} className="border-r border-b border-slate-700"></div>);
   }
 
+  const currentProgressIndex = completedDays + missedDays.length;
+
   for (let i = 0; i < totalDays; i++) {
     const dayNumber = i + 1;
-    
+    const currentDate = new Date(start);
+    currentDate.setUTCDate(start.getUTCDate() + i);
+    const currentDateString = currentDate.toISOString().split('T')[0];
+
     let dayContainerClasses = "flex items-center justify-center h-12 sm:h-14 border-r border-b border-slate-700 transition-colors duration-300";
     let dayTextClasses = "text-sm sm:text-base";
 
-    if (i < completedDays) {
-      dayContainerClasses += " bg-slate-800/50";
-      dayTextClasses += " text-slate-600 line-through";
-    } else if (i === completedDays) {
+    const isCompleted = i < completedDays;
+    const isToday = i === currentProgressIndex;
+    const isMissed = missedDays.includes(currentDateString);
+
+    if (isMissed) {
+        dayContainerClasses += " bg-red-900/60";
+        dayTextClasses += " text-red-400";
+    } else if (isToday) {
       dayContainerClasses += " bg-cyan-900/50"; 
       dayTextClasses += " bg-cyan-500 text-white font-bold rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center shadow-lg shadow-cyan-500/30";
+    } else if (isCompleted) {
+      dayContainerClasses += " bg-slate-800/50";
+      dayTextClasses += " text-slate-600 line-through";
     } else {
       dayTextClasses += " text-slate-300";
     }
@@ -42,7 +55,7 @@ const SavingsCalendar: React.FC<SavingsCalendarProps> = ({ startDate, totalDays,
     );
   }
 
-  const currentWeek = Math.floor(completedDays / 7) + 1;
+  const currentWeek = Math.floor(currentProgressIndex / 7) + 1;
   const totalWeeks = Math.ceil(totalDays / 7);
 
   return (

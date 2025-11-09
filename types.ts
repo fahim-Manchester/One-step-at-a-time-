@@ -43,6 +43,9 @@ export interface AppState {
   completedDays: number;
   lastCompletionDate: string | null;
   currentDate: string;
+  missedDaysStreak: number;
+  missedDays: string[];
+  isPenalized: boolean;
 }
 
 export interface SavingsPlanEntry {
