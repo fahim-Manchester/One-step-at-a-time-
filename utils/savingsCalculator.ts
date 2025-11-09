@@ -13,55 +13,50 @@ export const generateSavingsPlan = (goal: SavingsGoal): SavingsPlanEntry[] => {
   const totalDays = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1);
 
   const plan: SavingsPlanEntry[] = [];
-  const initialDailySaving = 0.50; // Start with 50p
-
-  // Using arithmetic progression formula: S = n/2 * (2a + (n-1)d)
-  // S = targetAmount, n = totalDays, a = initialDailySaving
-  // We solve for d (the daily increment)
   const n = totalDays;
   const S = targetAmount;
-  const a = initialDailySaving;
 
-  let d = 0;
-  if (n > 1) {
-    d = (2 * S / n - 2 * a) / (n - 1);
+  if (n <= 0) {
+    return [];
+  }
+  
+  if (n === 1) {
+    plan.push({
+      day: 1,
+      date: startDate.toISOString(),
+      dailyAmount: S,
+      cumulativeAmount: S,
+    });
+    return plan;
   }
 
-  // Handle cases where the goal is too small for the duration, which might lead to negative increments.
-  // In such cases, we just save an equal amount each day.
-  if (d < 0) {
-    const equalDailyAmount = S / n;
-    d = 0; // reset increment
-    let cumulative = 0;
-    for (let i = 0; i < n; i++) {
-        const currentDate = new Date(startDate);
-        currentDate.setDate(startDate.getDate() + i);
-        cumulative += equalDailyAmount;
-        plan.push({
-            day: i + 1,
-            date: currentDate.toISOString(),
-            dailyAmount: equalDailyAmount,
-            cumulativeAmount: cumulative,
-        });
-    }
-  } else {
-    let cumulativeAmount = 0;
-    for (let i = 0; i < n; i++) {
-      const dailyAmount = a + i * d;
-      cumulativeAmount += dailyAmount;
-      const currentDate = new Date(startDate);
-      currentDate.setDate(startDate.getDate() + i);
-      plan.push({
-        day: i + 1,
-        date: currentDate.toISOString(),
-        dailyAmount: dailyAmount,
-        cumulativeAmount: cumulativeAmount,
-      });
-    }
+  const averageDailyAmount = S / n;
+  
+  // Start at 50% of the average daily amount, with a minimum of 1p.
+  // This ensures the starting point is always manageable and relative to the goal.
+  const a = Math.max(0.01, averageDailyAmount * 0.5);
+
+  // Using arithmetic progression formula to find the daily increment 'd':
+  // S = n/2 * (2a + (n-1)d)
+  // This is guaranteed to be positive since 'a' is <= 'averageDailyAmount'
+  const d = (2 * S / n - 2 * a) / (n - 1);
+
+  let cumulativeAmount = 0;
+  for (let i = 0; i < n; i++) {
+    const dailyAmount = a + i * d;
+    cumulativeAmount += dailyAmount;
+    const currentDate = new Date(startDate);
+    currentDate.setDate(startDate.getDate() + i);
+    plan.push({
+      day: i + 1,
+      date: currentDate.toISOString(),
+      dailyAmount: dailyAmount,
+      cumulativeAmount: cumulativeAmount,
+    });
   }
 
-
-  // Adjust the last day's cumulative amount to exactly match the target due to potential floating point inaccuracies
+  // Adjust the last day's cumulative amount to exactly match the target 
+  // due to potential floating point inaccuracies.
   if (plan.length > 0) {
     plan[plan.length - 1].cumulativeAmount = targetAmount;
   }
