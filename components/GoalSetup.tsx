@@ -5,6 +5,7 @@ import { parseCSV } from '../utils/csvParser';
 import Button from './ui/Button';
 import Card from './ui/Card';
 import Input from './ui/Input';
+import OrbitalAnimation from './ui/OrbitalAnimation';
 
 interface GoalSetupProps {
   onGoalSet: (goal: SavingsGoal) => void;
@@ -165,8 +166,9 @@ const GoalSetup: React.FC<GoalSetupProps> = ({ onGoalSet }) => {
   const stepSubtitles = ["Let's start your journey to financial wellness.", "More detail provides better AI recommendations.", "This information helps create your custom plan."];
 
   return (
-    <div className="animate-fade-in-up">
-        <Card className="max-w-md mx-auto">
+    <div className="animate-fade-in-up relative">
+        <OrbitalAnimation />
+        <Card className="max-w-md mx-auto relative z-10">
             <h2 className="text-2xl font-bold text-center text-slate-100 mb-2">{stepTitles[step-1]}</h2>
             <p className="text-center text-slate-400 mb-6">{stepSubtitles[step-1]}</p>
             {error && <p className="text-red-400 text-sm mb-4 text-center">{error}</p>}
