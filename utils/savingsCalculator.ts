@@ -39,7 +39,7 @@ export const generateSavingsPlan = (goal: SavingsGoal): SavingsPlanEntry[] => {
         cumulative += equalDailyAmount;
         plan.push({
             day: i + 1,
-            date: currentDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
+            date: currentDate.toISOString(),
             dailyAmount: equalDailyAmount,
             cumulativeAmount: cumulative,
         });
@@ -53,7 +53,7 @@ export const generateSavingsPlan = (goal: SavingsGoal): SavingsPlanEntry[] => {
       currentDate.setDate(startDate.getDate() + i);
       plan.push({
         day: i + 1,
-        date: currentDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
+        date: currentDate.toISOString(),
         dailyAmount: dailyAmount,
         cumulativeAmount: cumulativeAmount,
       });

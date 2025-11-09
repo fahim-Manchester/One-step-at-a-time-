@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import type { AppState, SavingsGoal, BasicFinancials, AdvancedFinancials } from '../types';
 import { AccuracyLevel } from '../types';
 import { generateSavingsPlan } from '../utils/savingsCalculator';
@@ -68,15 +68,72 @@ const Dashboard: React.FC<DashboardProps> = ({ appState, onReset, onProgressUpda
   const [recommendationData, setRecommendationData] = useState<RecommendationData | null>(null);
   const [isLoadingRecs, setIsLoadingRecs] = useState(true);
 
+  // State for new interactive recommendations
+  const [completedRecs, setCompletedRecs] = useState<string[]>([]);
+  const XP_PER_REC = 10;
+  const XP_FOR_LEVEL_UP = 30; // 3 recs to level up
+  const [levelInfo, setLevelInfo] = useState({
+    level: 1,
+    xp: 0,
+    xpToNextLevel: XP_FOR_LEVEL_UP
+  });
+
+  const currentWeek = useMemo(() => Math.floor(completedDays / 7) + 1, [completedDays]);
+  const prevWeekRef = useRef(currentWeek);
+  const hasRunInitialEffect = useRef(false);
+
   useEffect(() => {
-    const fetchRecs = async () => {
-      setIsLoadingRecs(true);
-      const data = await getRecommendations(goal);
-      setRecommendationData(data);
-      setIsLoadingRecs(false);
-    };
-    fetchRecs();
-  }, [goal]);
+      const isNewWeek = prevWeekRef.current !== currentWeek;
+      
+      if (!hasRunInitialEffect.current || isNewWeek) {
+          const fetchAndSetRecs = async () => {
+              setIsLoadingRecs(true);
+              // Pass the current state of completedRecs from the *previous* week to get new ideas
+              const data = await getRecommendations(goal, completedRecs, currentWeek);
+              setRecommendationData(data);
+              if (isNewWeek) {
+                  setCompletedRecs([]); // Reset for the new week
+              }
+              prevWeekRef.current = currentWeek;
+              hasRunInitialEffect.current = true;
+              setIsLoadingRecs(false);
+          };
+
+          fetchAndSetRecs();
+      }
+  }, [currentWeek, goal]); // This effect correctly runs only on week change or initial goal set
+
+  const handleToggleRec = (advice: string) => {
+    const isAlreadyCompleted = completedRecs.includes(advice);
+    
+    setCompletedRecs(prev => 
+        isAlreadyCompleted 
+            ? prev.filter(item => item !== advice)
+            : [...prev, advice]
+    );
+
+    setLevelInfo(prev => {
+        const newXp = prev.xp + (isAlreadyCompleted ? -XP_PER_REC : XP_PER_REC);
+        
+        if (newXp >= prev.xpToNextLevel) {
+            return {
+                level: prev.level + 1,
+                xp: newXp - prev.xpToNextLevel,
+                xpToNextLevel: XP_FOR_LEVEL_UP,
+            };
+        }
+        
+        if (newXp < 0) {
+             return {
+                level: Math.max(1, prev.level - 1),
+                xp: prev.xpToNextLevel + newXp,
+                xpToNextLevel: XP_FOR_LEVEL_UP,
+            };
+        }
+
+        return { ...prev, xp: newXp };
+    });
+  };
 
   const savingsPlan = useMemo(() => generateSavingsPlan(goal), [goal]);
 
@@ -142,6 +199,9 @@ const Dashboard: React.FC<DashboardProps> = ({ appState, onReset, onProgressUpda
             isLoading={isLoadingRecs}
             intro={recommendationData?.intro || ''}
             recs={recommendationData?.recommendations || []}
+            completedRecs={completedRecs}
+            onToggleRec={handleToggleRec}
+            levelInfo={levelInfo}
         />
 
         <Card className="text-center p-4">
