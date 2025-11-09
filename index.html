@@ -49,6 +49,36 @@
     from { transform: translate3d(0, 0, 0); }
     to { transform: translate3d(-2560px, -2560px, 0); }
   }
+  @keyframes screen-shake {
+    0%, 100% { transform: translate(0, 0); }
+    20% { transform: translate(-5px, 3px); }
+    40% { transform: translate(4px, -5px); }
+    60% { transform: translate(-6px, 5px); }
+    80% { transform: translate(5px, -3px); }
+  }
+  @keyframes intimidating-flash {
+    0% {
+      transform: scale(0.1);
+      opacity: 0.8;
+    }
+    50% {
+      transform: scale(2.5);
+      opacity: 1;
+    }
+    80% {
+      transform: scale(2.8);
+      opacity: 0.9;
+    }
+    100% {
+      transform: scale(3);
+      opacity: 0;
+    }
+  }
+  @keyframes stars-fade-after-flash {
+    0% { opacity: 1; }
+    50% { opacity: 1; }
+    100% { opacity: 0; }
+  }
 </style>
 </head>
   <body>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Card from './ui/Card';
+import HeatDeathBackground from './ui/HeatDeathBackground';
 
 interface BannedScreenProps {
   onUnban: () => void;
@@ -34,8 +35,9 @@ const BannedScreen: React.FC<BannedScreenProps> = ({ onUnban }) => {
   }, [inputValue, onUnban]);
 
   return (
-    <div className="bg-slate-900 text-white min-h-screen font-sans flex flex-col items-center justify-center p-4">
-      <Card className="max-w-xl w-full text-center animate-fade-in-up relative overflow-hidden p-6 flex flex-col justify-center items-center min-h-[350px]">
+    <div className="bg-black text-white min-h-screen font-sans flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      <HeatDeathBackground />
+      <Card className="max-w-xl w-full text-center animate-fade-in-up relative z-10 overflow-hidden p-6 flex flex-col justify-center items-center min-h-[350px]">
           <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto text-red-500 mb-4"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
           <h1 className="text-3xl font-bold text-red-400">Streak Broken!</h1>
           <p className="text-slate-300 mt-4 text-lg">
